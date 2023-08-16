@@ -37,5 +37,8 @@ cd ..
 # Setup the module file
 cp $package.lua $module/$version.lua
 
+# Create python link
+ln $install/bin/python3 $install/bin/python
+
 sed -i -e "s@\${package}@$package@g" $module/$version.lua
 sed -i -e "s@\${version}@$version@g" $module/$version.lua

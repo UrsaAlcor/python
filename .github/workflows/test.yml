@@ -40,4 +40,7 @@ jobs:
 
         alcor install python --url https://github.com/UrsaAlcor/python/releases/download/$version/python_x86_64.zip
         module load python
-        gcc tests/python_main.c -o python_main -lpython
+        gcc tests/python_main.c -o python_main -lpython3.10
+        which python
+        python -c "import bz2"
+
