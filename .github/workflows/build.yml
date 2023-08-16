@@ -1,0 +1,61 @@
+name: build
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64]
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Submodules
+      run: |
+        git submodule update --init --recursive
+
+    - name: Install dependencies
+      run: |
+        sudo apt install coreutils gcc
+
+    - name: Install alcor
+      run: |
+        pip install git+https://github.com/UrsaAlcor/mocli.git
+        alcor init "$(pwd)/aclor"
+        alcor activate --auto
+        alcor install bzip2
+
+    - name: Build & Install python
+      run: |
+        source /home/runner/.config/mocli/bashrc
+        activate_alcor
+        bash setup.sh ${{ matrix.arch }}
+
+    - name: Package Module
+      run: |
+        zip -r python_${{ matrix.arch }}.zip lmod 
+  
+    - name: Get release
+      if: startsWith(github.ref, 'refs/tags')
+      id: get_release
+      uses: bruceadams/get-release@v1.2.3
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Upload Release Binaries
+      if: startsWith(github.ref, 'refs/tags')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      with:
+        upload_url: ${{ steps.get_release.outputs.upload_url }}
+        asset_path: python_${{ matrix.arch }}.zip
+        asset_name: python_${{ matrix.arch }}.zip
+        asset_content_type: application/octet-stream
